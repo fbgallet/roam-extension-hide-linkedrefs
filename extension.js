@@ -1,37 +1,31 @@
 (() => {
-  // customize hotkeys on line 19
+  // customize hotkeys on line 22
   // default: Control + Shift + L
   const HIDE_ON_LAUNCH = true;
-  const LOCK = true;
-  let lastState;
+  let lastValue = "block";
 
-  const toggleLinkedRefDisplay = (toggle = true) => {
-    const linkedRefElt = document.querySelectorAll(".rm-reference-main");
-    if (linkedRefElt.length > 0) {
-      const currentState = toggle ? linkedRefElt[0].style.display : lastState;
-      const newState = toggle
-        ? currentState === "none"
-          ? "block"
-          : "none"
-        : currentState === undefined || (LOCK && lastState === "none")
-        ? "none"
-        : "block";
-      linkedRefElt.forEach((elt) => (elt.style.display = newState));
-      return newState;
-    }
+  const toggleLinkedRefDisplay = () => {
+    const stylesheet = document.styleSheets[1];
+    const className = ".rm-reference-main";
+    const property = "display";
+    const value = lastValue === "block" ? "none" : "block";
+    lastValue = value;
+    // Add the new rule to the stylesheet
+    const index = Array.from(stylesheet.cssRules).findIndex(
+      (rule) => rule.selectorText === ".rm-reference-main"
+    );
+    if (index !== -1) stylesheet.deleteRule(index);
+    stylesheet.insertRule(
+      className + " { " + property + ": " + value + " !important; }",
+      stylesheet.cssRules.length
+    );
   };
   const onKeyDown = (e) => {
     // customize HOTKEYS here
     if (e.key.toLowerCase() === "l" && e.ctrlKey && e.shiftKey) {
-      lastState = toggleLinkedRefDisplay(true);
+      toggleLinkedRefDisplay();
     }
   };
-  const onPageLoad = () => {
-    setTimeout(() => {
-      lastState = toggleLinkedRefDisplay(false);
-    }, 20);
-  };
-  window.addEventListener("popstate", onPageLoad);
   document.addEventListener("keydown", onKeyDown);
-  if (HIDE_ON_LAUNCH) onPageLoad();
+  if (HIDE_ON_LAUNCH) toggleLinkedRefDisplay();
 })();
